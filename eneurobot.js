@@ -196,8 +196,10 @@ function neurobot( x, y, rot, parent)
 		}
 
                 //add ability to see age and food level
-                this.vision[32] = 1 - this.age/this.maxage;
-                this.vision[33] = 1 - this.foodlevel/this.maxfood;
+                if(this.inputneurons == 34) {
+                    this.vision[32] = 1 - this.age/this.maxage;
+                    this.vision[33] = 1 - this.foodlevel/this.maxfood;
+                }
 
                 this.output = this.brain.step(this.vision);
 
@@ -297,7 +299,7 @@ function neurobot( x, y, rot, parent)
 		var data = "BRAINDATA:1/5;\n";
 		
 		data += this.brain.layersize.toString(36) + ":" + this.brain.braindepth.toString(36) + ":" + this.generation.toString(36) + ":" + int_pack( this.mutationrate, 1.0 ) + ":";
-		data += Math.round(this.color.r).toString(16) + "/" + Math.round(this.color.g).toString(16) + "/" + Math.round(this.color.b).toString(16) + ";\n";
+		data += Math.round(this.color.r).toString(16) + "/" + Math.round(this.color.g).toString(16) + "/" + Math.round(this.color.b).toString(16) + ":" + this.inputneurons.toString(36) + ";\n";
 		
 		for( var x=0; x<this.brain.braindepth; x++ )
 		{
@@ -333,6 +335,7 @@ function neurobot( x, y, rot, parent)
 	
 	this.loaddata = function( data )
 	{
+                this.inputneurons = 32;
 		var result = { success:true, msg:"Huge Success!" };
 
 		var rawdata = data.replace( /[^0-9A-Z!;:/-]/gm, "" ).split( "!" );
@@ -353,7 +356,7 @@ function neurobot( x, y, rot, parent)
 			return { success:false, msg:"Broken header or invalid version" };
 
 		var stats = data.shift().split( ":" );
-		if( stats.length != 5 )
+		if( stats.length != 5 && stats.length != 6)
 			return { success:false, msg:"Broken header" };
 
 		this.braindepth = parseInt( stats[1], 36 );
@@ -364,6 +367,12 @@ function neurobot( x, y, rot, parent)
 		var color = stats[4].split( "/" );
 		if( color.length != 3 )
 			result = { success:false, msg:"Broken color information" };
+
+                if( stats.length == 6) {
+                    this.inputneurons = parseInt( stats[5], 36 );
+                }
+                this.vision = new Array(this.inputneurons);
+                console.log("stats:",this.braindepth, this.brainsize,this.generation,this.mutationrate,this.inputneurons);
 
 		this.color.r = parseInt( color[0], 16 );
 		this.color.g = parseInt( color[1], 16 );
@@ -378,29 +387,28 @@ function neurobot( x, y, rot, parent)
 		if( data.length-1 != this.braindepth )
 			result = { success:false, msg:"Corrupted brain data" };
 
-		this.neurons = new Array();
-		for( var i=0; i<this.braindepth; i++ )
-		{
-			this.neurons[i] = new Array();
-		}
+                this.brain = new Brain(this.braindepth, this.brainsize, this.inputneurons, this.outputneurons);
+                console.log("creating brain");
 
 		for( var x=0; x<this.braindepth; x++ )
 		{
+                        console.log("layer:",x);
 			var braindata = data[x].split( ":" );
 			if( braindata.length-1 != this.brainsize )
 				result = { success:false, msg:"Corrupted brain data" };
 
 			for( var y=0; y<this.brainsize; y++ )
 			{
-				this.neurons[x][y] = {};
-				this.neurons[x][y].inputweights = new Array();
-				this.neurons[x][y].feedbackweights = new Array();
-				this.neurons[x][y].activation = 0.0;
-				this.neurons[x][y].nextact = 0.0;
+                                console.log("neuron:",y);
+				this.brain.neurons[x][y] = {};
+				this.brain.neurons[x][y].inputweights = new Array();
+				this.brain.neurons[x][y].feedbackweights = new Array();
+				this.brain.neurons[x][y].activation = 0.0;
+				this.brain.neurons[x][y].nextact = 0.0;
 
 				var neurondata = braindata[y].split( "/" );
 
-				this.neurons[x][y].bias = int_unpack( neurondata[0], 5.0 );
+				this.brain.neurons[x][y].bias = int_unpack( neurondata[0], 5.0 );
 				
 				neurondata.shift();
 
@@ -411,22 +419,24 @@ function neurobot( x, y, rot, parent)
 
 					for( var i=0; i<this.brainsize; i++ )
 					{
-						this.neurons[x][y].inputweights[i] = int_unpack( neurondata[i*2], 5.0 );
-						this.neurons[x][y].feedbackweights[i] = int_unpack( neurondata[i*2+1], 5.0 );
+						this.brain.neurons[x][y].inputweights[i] = int_unpack( neurondata[i*2], 5.0 );
+						this.brain.neurons[x][y].feedbackweights[i] = int_unpack( neurondata[i*2+1], 5.0 );
 					}
 				}
 				else
 				{
-					if( neurondata.length-1 != 32 )
+					if( neurondata.length-1 != this.inputneurons )
 						result = { success:false, msg:"Corrupted brain data" };
 
-					for( var i=0; i<32; i++ )
+					for( var i=0; i<this.inputneurons; i++ )
 					{
-						this.neurons[x][y].inputweights[i] = int_unpack( neurondata[i], 5.0 );						
-						this.neurons[x][y].feedbackweights[i] = 0;
+                                                console.log("inputweight/feedbackweight:",i);
+						this.brain.neurons[x][y].inputweights[i] = int_unpack( neurondata[i], 5.0 );						
+						this.brain.neurons[x][y].feedbackweights[i] = 0;
 					}
 				}
 			}
+                        console.log("done", result.success, result.msg);
 
 			if( result.success == false )
 			{
@@ -435,6 +445,7 @@ function neurobot( x, y, rot, parent)
 			}
 		}
 
+                console.log("done", result.success, result.msg);
 		if( result.success == false )
 		{
 			this.alife = false;
