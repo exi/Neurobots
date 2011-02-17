@@ -296,7 +296,7 @@ function neurobot( x, y, rot, parent)
 	
 	this.getdata = function()
 	{
-		var data = "BRAINDATA:1/5;\n";
+		var data = "EBRAINDATA:1/5;\n";
 		
 		data += this.brain.layersize.toString(36) + ":" + this.brain.braindepth.toString(36) + ":" + this.generation.toString(36) + ":" + int_pack( this.mutationrate, 1.0 ) + ":";
 		data += Math.round(this.color.r).toString(16) + "/" + Math.round(this.color.g).toString(16) + "/" + Math.round(this.color.b).toString(16) + ":" + this.inputneurons.toString(36) + ";\n";
@@ -330,7 +330,7 @@ function neurobot( x, y, rot, parent)
 		
 		data += "!" + generate_checksum( csdata ) + "\n";
 
-		return data.toUpperCase() + "!http://d00m.org/~someone/neurobots/";
+		return data.toUpperCase() + "!http://exi.wthack.de/Neurobot/";
 	}
 	
 	this.loaddata = function( data )
@@ -352,7 +352,7 @@ function neurobot( x, y, rot, parent)
 		data = rawdata[0].split( ";" );
 
 		var header = data.shift().split( ":" );
-		if( ( header[0] != "BRAINDATA" ) || ( header[1] != "1/5" ) )
+		if( (( header[0] != "BRAINDATA" ) && ( header[0] != "EBRAINDATA" )) || ( header[1] != "1/5" ) )
 			return { success:false, msg:"Broken header or invalid version" };
 
 		var stats = data.shift().split( ":" );
