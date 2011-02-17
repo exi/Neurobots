@@ -55,7 +55,7 @@ function Brain(p_braindepth, p_layersize, p_inputneurons, p_outputneurons) {
                         this.neurons[x][y].feedbackweights[i] = mutate( parent.neurons[x][y].feedbackweights[i], 5.0, mutationrate );
                     }
                 } else {
-                    for( var i=0; i<32; i++ ) {
+                    for( var i=0; i<this.inputneurons; i++ ) {
                         this.neurons[x][y].inputweights[i] = mutate( parent.neurons[x][y].inputweights[i], 5.0, mutationrate );
                         this.neurons[x][y].feedbackweights[i] = 0;
                     }
@@ -81,7 +81,7 @@ function Brain(p_braindepth, p_layersize, p_inputneurons, p_outputneurons) {
                     }
                 } else {
                     this.neurons[x][y].bias = randinit( 5.0 );
-                    for( var i=0; i<32; i++ ) {
+                    for( var i=0; i<this.inputneurons; i++ ) {
                         this.neurons[x][y].inputweights[i] = randinit( 5.0 );
                         this.neurons[x][y].feedbackweights[i] = 0;
                     }

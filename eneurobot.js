@@ -61,8 +61,11 @@ function neurobot( x, y, rot, parent)
 	this.dotseaten = 0;
 	this.generation;
 	this.color = {};
+        this.maxage = 10000;
+        this.maxfood = 1000;
+        this.inputneurons = 34;
 	
-	this.vision = new Array();
+	this.vision = new Array(this.inputneurons);
 
 	if( ! parent )
 	{
@@ -103,13 +106,7 @@ function neurobot( x, y, rot, parent)
 		if( this.color.b < 0 ) this.color.b = 0;
 	}
 
-        this.brain = new Brain(this.braindepth, this.brainsize, 32, 2);
-
-	this.neurons = new Array();
-	for( var i=0; i<this.braindepth; i++ )
-	{
-		this.neurons[i] = new Array();
-	}
+        this.brain = new Brain(this.braindepth, this.brainsize, this.inputneurons, 2);
 
 	if( ! parent )
 	{
@@ -122,7 +119,7 @@ function neurobot( x, y, rot, parent)
 
 	this.step = function()
 	{
-		for( var i=0; i<32; i++ )
+		for( var i=0; i<this.inputneurons; i++ )
 			this.vision[i] = 0.0;
 
 		for( var j in food )
@@ -196,6 +193,10 @@ function neurobot( x, y, rot, parent)
 			}
 		}
 
+                //add ability to see age and food level
+                this.vision[32] = 1 - this.age/this.maxage;
+                this.vision[33] = 1 - this.foodlevel/this.maxfood;
+
                 var output = this.brain.step(this.vision);
 
 		var speed = Math.abs(output[0]);
@@ -233,7 +234,7 @@ function neurobot( x, y, rot, parent)
 			}
 		}
 
-		if( this.foodlevel >= 1000 )
+		if( this.foodlevel >= this.maxfood )
 		{
 			this.foodlevel -= 600;
 			this.children++;
@@ -241,7 +242,7 @@ function neurobot( x, y, rot, parent)
 		}
 
 		this.age++;
-		if( this.age >= 10000 )
+		if( this.age >= this.maxage )
 			this.alife = false;
 
 		this.foodlevel -= speed/2.5 + Math.abs( turnspeed/5.0 ) + 0.2;
@@ -311,7 +312,7 @@ function neurobot( x, y, rot, parent)
 				}
 				else
 				{
-					for( var i=0; i<32; i++ )
+					for( var i=0; i<this.inputneurons; i++ )
 					{
 						data += int_pack( this.brain.neurons[x][y].inputweights[i], 5.0 ) + "/";
 					}
