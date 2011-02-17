@@ -37,13 +37,24 @@ function botstats( braindump )
 
 	bctx.clearRect( 0, 0, 160, 160 );
 	
+	for( var x=0; x<bots[selected].vision.length; x++ ) {
+	    var act = Math.round( bots[selected].vision[x]*255.0 );
+	    bctx.fillStyle = "rgb( "+act+", "+act+", "+act+" )";
+	    bctx.fillRect( x*4, 0, 10, 10 );
+        }
+
 	for( var x=0; x<bots[selected].brainsize; x++ )
-	for( var y=0; y<bots[selected].braindepth; y++ )
-	{
-		var act = Math.round( bots[selected].brain.neurons[y][x].activation*255.0 );
-		bctx.fillStyle = "rgb( "+act+", "+act+", "+act+" )";
-		bctx.fillRect( x*10, y*10, 10, 10 );
-	}
+	    for( var y=0; y<bots[selected].braindepth; y++ )
+	    {
+	    	var act = Math.round( bots[selected].brain.neurons[y][x].activation*255.0 );
+	    	bctx.fillStyle = "rgb( "+act+", "+act+", "+act+" )";
+	    	bctx.fillRect( x*10, y*10+10, 10, 10 );
+	    }
+	for( var x=0; x<bots[selected].output.length; x++ ) {
+	    var act = Math.round( bots[selected].output[x]*255.0 );
+	    bctx.fillStyle = "rgb( "+act+", "+act+", "+act+" )";
+	    bctx.fillRect( x*10, 10*bots[selected].braindepth+10, 10, 10 );
+        }
 }
 
 function do_stats()

@@ -64,6 +64,8 @@ function neurobot( x, y, rot, parent)
         this.maxage = 10000;
         this.maxfood = 1000;
         this.inputneurons = 34;
+        this.outputneurons = 2;
+        this.output = new Array(this.outputneurons);
 	
 	this.vision = new Array(this.inputneurons);
 
@@ -106,7 +108,7 @@ function neurobot( x, y, rot, parent)
 		if( this.color.b < 0 ) this.color.b = 0;
 	}
 
-        this.brain = new Brain(this.braindepth, this.brainsize, this.inputneurons, 2);
+        this.brain = new Brain(this.braindepth, this.brainsize, this.inputneurons, this.outputneurons);
 
 	if( ! parent )
 	{
@@ -197,10 +199,10 @@ function neurobot( x, y, rot, parent)
                 this.vision[32] = 1 - this.age/this.maxage;
                 this.vision[33] = 1 - this.foodlevel/this.maxfood;
 
-                var output = this.brain.step(this.vision);
+                this.output = this.brain.step(this.vision);
 
-		var speed = Math.abs(output[0]);
-		var turnspeed = output[1];
+		var speed = Math.abs(this.output[0]);
+		var turnspeed = this.output[1];
 		
 		this.rot += turnspeed/5.0;
 
