@@ -49,7 +49,7 @@ function mutate( value, range, rate )
 var braindepth;
 var brainsize;
 
-function neurobot( x, y, rot, parent )
+function neurobot( x, y, rot, parent)
 {
 	this.alife = true;
 	this.rot = rot;
@@ -103,6 +103,8 @@ function neurobot( x, y, rot, parent )
 		if( this.color.b < 0 ) this.color.b = 0;
 	}
 
+        this.brain = new Brain(this.braindepth, this.brainsize, 32, 2);
+
 	this.neurons = new Array();
 	for( var i=0; i<this.braindepth; i++ )
 	{
@@ -111,69 +113,11 @@ function neurobot( x, y, rot, parent )
 
 	if( ! parent )
 	{
-		for( var x=0; x<this.braindepth; x++ )
-		{
-			for( var y=0; y<this.brainsize; y++ )
-			{
-				this.neurons[x][y] = {};
-				this.neurons[x][y].inputweights = new Array();
-				this.neurons[x][y].feedbackweights = new Array();
-				this.neurons[x][y].activation = 0.0;
-				this.neurons[x][y].nextact = 0.0;
-
-				if( x != 0 )
-				{
-					this.neurons[x][y].bias = randinit( 5.0 );
-					for( var i=0; i<this.brainsize; i++ )
-					{
-						this.neurons[x][y].inputweights[i] = randinit( 5.0 );
-						this.neurons[x][y].feedbackweights[i] = randinit( 5.0 );
-					}
-				}
-				else
-				{
-					this.neurons[x][y].bias = randinit( 5.0 );
-					for( var i=0; i<32; i++ )
-					{
-						this.neurons[x][y].inputweights[i] = randinit( 5.0 );
-						this.neurons[x][y].feedbackweights[i] = 0;
-					}
-				}
-			}
-		}
+                this.brain.randomInit();
 	}
 	else
 	{
-		for( var x=0; x<this.braindepth; x++ )
-		{
-			for( var y=0; y<this.brainsize; y++ )
-			{
-				this.neurons[x][y] = {};
-				this.neurons[x][y].inputweights = new Array();
-				this.neurons[x][y].feedbackweights = new Array();
-				this.neurons[x][y].activation = 0.0;
-				this.neurons[x][y].nextact = 0.0;
-
-				this.neurons[x][y].bias = mutate( parent.neurons[x][y].bias, 5.0, this.mutationrate );
-
-				if( x != 0 )
-				{
-					for( var i=0; i<this.brainsize; i++ )
-					{
-						this.neurons[x][y].inputweights[i] = mutate( parent.neurons[x][y].inputweights[i], 5.0, this.mutationrate );
-						this.neurons[x][y].feedbackweights[i] = mutate( parent.neurons[x][y].feedbackweights[i], 5.0, this.mutationrate );
-					}
-				}
-				else
-				{
-					for( var i=0; i<32; i++ )
-					{
-						this.neurons[x][y].inputweights[i] = mutate( parent.neurons[x][y].inputweights[i], 5.0, this.mutationrate );
-						this.neurons[x][y].feedbackweights[i] = 0;
-					}
-				}
-			}
-		}
+                this.brain.mutateFromParent(parent.brain);
 	}
 
 	this.step = function()
@@ -194,6 +138,7 @@ function neurobot( x, y, rot, parent )
 			dist = f.x*f.x+f.y*f.y;
 			if( dist > 150.0*150.0 )
 				continue;
+                        var distq = dist;
 
 			for( var i=0; i<16; i++ )
 			{
@@ -211,7 +156,7 @@ function neurobot( x, y, rot, parent )
 				dist = (p.x-food[j].x)*(p.x-food[j].x)+(p.y-food[j].y)*(p.y-food[j].y);
 				
 				if( dist <= 25.0 )
-					this.vision[i] = 1.0;
+					this.vision[i] = 1.0 - distq/(150*150);
 			}
 		}
 
@@ -229,6 +174,7 @@ function neurobot( x, y, rot, parent )
 			dist = f.x*f.x+f.y*f.y;
 			if( dist > 150.0*150.0 )
 				continue;
+                        var distq = dist;
 
 			for( var i=0; i<16; i++ )
 			{
@@ -246,55 +192,15 @@ function neurobot( x, y, rot, parent )
 				dist = (p.x-bots[j].x)*(p.x-bots[j].x)+(p.y-bots[j].y)*(p.y-bots[j].y);
 				
 				if( dist <= 25.0 )
-					this.vision[i+16] = 1.0;
+					this.vision[i+16] = 1.0 - distq/(150*150);
 			}
 		}
 
-		for( y=0; y<this.brainsize; y++ )
-		{
-			this.neurons[0][y].nextact = this.neurons[0][y].bias;
-			for( i=0; i<32; i++ )
-				this.neurons[0][y].nextact += this.vision[i] * this.neurons[0][y].inputweights[i];
-		}
+                var output = this.brain.step(this.vision);
+
+		var speed = Math.abs(output[0]);
+		var turnspeed = output[1];
 		
-		for( x=1; x<this.braindepth; x++ )
-		for( y=0; y<this.brainsize; y++ )
-		{
-			this.neurons[x][y].nextact = this.neurons[x][y].bias;
-			for( i=0; i<this.brainsize; i++ )
-			{
-				this.neurons[x][y].nextact += this.neurons[x-1][i].activation * this.neurons[x][y].inputweights[i];
-				this.neurons[x-1][y].nextact += this.neurons[x][i].activation * this.neurons[x][y].feedbackweights[i];
-			}
-		}
-
-		for( x=0; x<this.braindepth; x++ )
-		for( y=0; y<this.brainsize; y++ )
-		{
-			if( this.neurons[x][y].nextact > 0.0 )
-				this.neurons[x][y].activation = this.neurons[x][y].nextact/(1.0+this.neurons[x][y].nextact);
-			else
-				this.neurons[x][y].activation = 0.0;
-		}
-
-		var speed = 0.0;
-		var turnspeed = 0.0;
-		
-		for( var i=0; i<this.brainsize/2; i++ )
-		{
-			speed += this.neurons[this.braindepth-1][i].activation;
-		}
-		speed /= this.brainsize/2;
-
-		for( var i=this.brainsize/2; i<this.brainsize; i++ )
-		{
-			if( i%2 == 0 )
-				turnspeed += this.neurons[this.braindepth-1][i].activation;
-			else
-				turnspeed -= this.neurons[this.braindepth-1][i].activation;
-		}
-		turnspeed /= this.brainsize/2;
-
 		this.rot += turnspeed/5.0;
 
 		if( this.rot >= 2.0*Math.PI )
@@ -363,7 +269,7 @@ function neurobot( x, y, rot, parent )
 				lx = Math.cos( dir )*150.0;
 				ly = Math.sin( dir )*150.0;
 
-				ctx.strokeStyle = "rgba( "+(this.vision[i+16]*127+127)+", "+(this.vision[i]*127+127)+", 127, 0.25 )"
+				ctx.strokeStyle = "rgba( "+Math.round(this.vision[i+16]*127+127)+", "+Math.round(this.vision[i]*127+127)+", 127, 0.25 )"
 
 				ctx.beginPath();
 				ctx.moveTo( 0, 0 );
@@ -387,27 +293,27 @@ function neurobot( x, y, rot, parent )
 	{
 		var data = "BRAINDATA:1/5;\n";
 		
-		data += this.brainsize.toString(36) + ":" + this.braindepth.toString(36) + ":" + this.generation.toString(36) + ":" + int_pack( this.mutationrate, 1.0 ) + ":";
+		data += this.brain.layersize.toString(36) + ":" + this.brain.braindepth.toString(36) + ":" + this.generation.toString(36) + ":" + int_pack( this.mutationrate, 1.0 ) + ":";
 		data += Math.round(this.color.r).toString(16) + "/" + Math.round(this.color.g).toString(16) + "/" + Math.round(this.color.b).toString(16) + ";\n";
 		
-		for( var x=0; x<this.braindepth; x++ )
+		for( var x=0; x<this.brain.braindepth; x++ )
 		{
-			for( var y=0; y<this.brainsize; y++ )
+			for( var y=0; y<this.brain.layersize; y++ )
 			{
-				data += int_pack( this.neurons[x][y].bias, 5.0 ) + "/";
+				data += int_pack( this.brain.neurons[x][y].bias, 5.0 ) + "/";
 				if( x != 0 )
 				{
-					for( var i=0; i<this.brainsize; i++ )
+					for( var i=0; i<this.brain.layersize; i++ )
 					{
-						data += int_pack( this.neurons[x][y].inputweights[i], 5.0 ) + "/";
-						data += int_pack( this.neurons[x][y].feedbackweights[i], 5.0 ) + "/";
+						data += int_pack( this.brain.neurons[x][y].inputweights[i], 5.0 ) + "/";
+						data += int_pack( this.brain.neurons[x][y].feedbackweights[i], 5.0 ) + "/";
 					}
 				}
 				else
 				{
 					for( var i=0; i<32; i++ )
 					{
-						data += int_pack( this.neurons[x][y].inputweights[i], 5.0 ) + "/";
+						data += int_pack( this.brain.neurons[x][y].inputweights[i], 5.0 ) + "/";
 					}
 				}
 				data += ":";

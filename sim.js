@@ -39,6 +39,7 @@ function draw()
 
 function loop()
 {
+        var update = false;
 
 	(function checkbots() {
         for( var i=0; i<bots.length; i++ )
@@ -92,13 +93,15 @@ function loop()
 	if( fooddelay > 0 )
 		fooddelay--;
 
-        var d = new Date();
+        var date = new Date();
 
-        if (d.getTime() - lastdraw > 40) 
+        if( date.getTime() - lastdraw > 40 )
         {
-            draw(); // draw only 25 fps
-            lastdraw = d.getTime();
+            update = true;
+            lastdraw = date.getTime();
         }
+        if( update)
+            draw();
 	
 	var now = new Date().getTime();
 	fps = 1000/(now-time);
@@ -107,7 +110,8 @@ function loop()
 	statdelay--;
 	if( statdelay <= 0 )
 	{
-		do_stats()
+                if( update )
+                    do_stats();
 		statdelay = 10;
 	}
 }

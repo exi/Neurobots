@@ -40,7 +40,7 @@ function botstats( braindump )
 	for( var x=0; x<bots[selected].brainsize; x++ )
 	for( var y=0; y<bots[selected].braindepth; y++ )
 	{
-		var act = Math.round( bots[selected].neurons[y][x].activation*255.0 );
+		var act = Math.round( bots[selected].brain.neurons[y][x].activation*255.0 );
 		bctx.fillStyle = "rgb( "+act+", "+act+", "+act+" )";
 		bctx.fillRect( x*10, y*10, 10, 10 );
 	}
