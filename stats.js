@@ -50,14 +50,20 @@ function botstats( braindump )
 	    for( var y=0; y<bots[selected].braindepth; y++ )
 	    {
 	    	var act = Math.round( bots[selected].brain.neurons[y][x].activation*255.0 );
-	    	bctx.fillStyle = "rgb( "+act+", "+act+", "+act+" )";
+                if( act >= 0)
+                    bctx.fillStyle = "rgb( 0, "+act+", 0 )";
+                else
+                    bctx.fillStyle = "rgb( "+Math.abs(act)+", 0, 0 )";
 	    	bctx.fillRect( x*blockwidth, y*10+10, blockwidth, 10 );
 	    }
 
         blockwidth = Math.floor(canvaswidth/bots[selected].output.length);
 	for( var x=0; x<bots[selected].output.length; x++ ) {
 	    var act = Math.round( bots[selected].output[x]*255.0 );
-	    bctx.fillStyle = "rgb( "+act+", "+act+", "+act+" )";
+                if( act >= 0)
+                    bctx.fillStyle = "rgb( 0, "+act+", 0 )";
+                else
+                    bctx.fillStyle = "rgb( "+Math.abs(act)+", 0, 0 )";
 	    bctx.fillRect( x*blockwidth, 10*bots[selected].braindepth+10, blockwidth, 10 );
         }
 }

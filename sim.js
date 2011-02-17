@@ -6,6 +6,7 @@ var zoom, camx, camy;
 
 var bots;
 var food;
+var maxfood = 100;
 
 var fooddelay;
 var foodrate;
@@ -35,6 +36,15 @@ function draw()
 		bots[i].draw( ctx );
 	
 	ctx.restore();
+}
+
+function generateFood() {
+    fooddelay = foodrate;
+
+    var x = Math.random()*worldsize*2-worldsize;
+    var y = Math.random()*worldsize*2-worldsize;
+
+    food.push( new plant( x, y ) );
 }
 
 function loop()
@@ -80,15 +90,9 @@ function loop()
 	if( bots.length < 5 )
 		bots.push( new neurobot( worldsize*2.0*(Math.random()-0.5), worldsize*2.0*(Math.random()-0.5), Math.PI*2*Math.random() ) );
 
-	if( ( fooddelay <= 0 ) && ( food.length < 200 ) )
+	if( ( fooddelay <= 0 ) && ( food.length < maxfood ) )
 	{
-		fooddelay = foodrate;
-
-		var ang = Math.PI*2*Math.random();
-		var dist = Math.random();
-		dist = dist*foodradius;
-		
-		food.push( new plant( Math.cos(ang)*dist, Math.sin(ang)*dist ) );
+            generateFood();
 	}
 
 	if( fooddelay > 0 )
@@ -115,6 +119,7 @@ function loop()
                     do_stats();
 		statdelay = 10;
 	}
+        timer = setTimeout(loop, 1);
 }
 
 function resetsim()
@@ -144,13 +149,9 @@ function resetsim()
 		bots.push( new neurobot( worldsize*2.0*(Math.random()-0.5), worldsize*2.0*(Math.random()-0.5), Math.PI*2*Math.random() ) );
 
 	food = new Array();
-	for( var i=0; i<200; i++ )
+	for( var i=0; i<maxfood; i++ )
 	{
-		var ang = Math.PI*2*Math.random();
-		var dist = Math.random();
-		dist = dist*foodradius;
-	
-		food.push( new plant( Math.cos(ang)*dist, Math.sin(ang)*dist, 150 ) );
+            generateFood();
 	}
 
 	fooddelay = 0;
@@ -185,7 +186,7 @@ function init()
 		statdelay = 0;
 
 		running = true;
-		timer = setInterval( loop, 20 );
+                loop();
 	}
 }
 
