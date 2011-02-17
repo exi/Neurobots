@@ -10,6 +10,8 @@ var food;
 var fooddelay;
 var foodrate;
 
+var lastdraw = 0;
+
 const worldsize = 600;
 const foodradius = 500;
 
@@ -37,6 +39,7 @@ function draw()
 
 function loop()
 {
+
 	(function checkbots() {
         for( var i=0; i<bots.length; i++ )
 	{
@@ -89,7 +92,13 @@ function loop()
 	if( fooddelay > 0 )
 		fooddelay--;
 
-	draw();
+        var d = new Date();
+
+        if (d.getTime() - lastdraw > 40) 
+        {
+            draw(); // draw only 25 fps
+            lastdraw = d.getTime();
+        }
 	
 	var now = new Date().getTime();
 	fps = 1000/(now-time);
