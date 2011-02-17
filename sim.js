@@ -40,6 +40,7 @@ function draw()
 function loop()
 {
         var update = false;
+        var distcache = {};
 
 	(function checkbots() {
         for( var i=0; i<bots.length; i++ )
@@ -56,7 +57,7 @@ function loop()
 		}
 		else
 		{
-			bots[i].step();
+			bots[i].step(distcache);
 		}
 	}
         })();
@@ -121,20 +122,20 @@ function resetsim()
 	selected = -1;
 
 	var value = parseInt( document.getElementById( "bdepthbox" ).value );
-	if( ( value <= 16 ) && ( value >= 2 ) )
+	if( ( value <= 64 ) && ( value >= 2 ) )
 		braindepth = value;
 	else
 	{
-		alert( "Brain size out of range (2-16)" );
+		alert( "Brain size out of range (2-64)" );
 		return;
 	}
 	
 	value = parseInt( document.getElementById( "bsizebox" ).value );
-	if( ( value <= 16 ) && ( value >= 4 ) && ( value%2 == 0 ) )
+	if( ( value <= 64 ) && ( value >= 4 ) && ( value%2 == 0 ) )
 		brainsize = value;
 	else
 	{
-		alert( "Brain complexity out of range (4-16) or not a multiple of 2" );
+		alert( "Brain complexity out of range (4-64) or not a multiple of 2" );
 		return;
 	}
 
