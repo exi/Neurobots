@@ -6,7 +6,7 @@ var zoom, camx, camy;
 
 var bots;
 var food;
-var maxfood = 100;
+var maxfood = 400;
 
 var fooddelay;
 var foodrate;
@@ -16,15 +16,19 @@ var lastdraw = 0;
 const worldsize = 600;
 const foodradius = 500;
 
+var floor;
+
 function draw()
 {
 	ctx.save();
-	ctx.fillStyle = "rgb( 70, 80, 60 )"
+	ctx.fillStyle = "rgb( 0, 0, 0 )";
 	ctx.fillRect( 0, 0, 800, 600 );
-	
+
 	ctx.translate( 400, 300 );
 	ctx.scale( zoom, zoom );
 	ctx.translate( camx, camy );
+
+        ctx.drawImage(floor.canvas, 0, 0, floor.size, floor.size, -worldsize, -worldsize, worldsize*2, worldsize*2); 
 
 	ctx.strokeStyle = "rgb( 0, 0, 0 )"
 	ctx.strokeRect( -worldsize, -worldsize, worldsize*2, worldsize*2 );
@@ -38,13 +42,34 @@ function draw()
 	ctx.restore();
 }
 
-function generateFood() {
+function generateFood(px,py) {
     fooddelay = foodrate;
 
-    var x = Math.random()*worldsize*2-worldsize;
-    var y = Math.random()*worldsize*2-worldsize;
+    var x,y;
+    if( !px || !py) {
+        x = Math.round(Math.random()*floor.size);
+        y = Math.round(Math.random()*floor.size);
+    } else {
+        x = px;
+        y = py;
+    }
 
-    food.push( new plant( x, y ) );
+    var f = floor.get(x,y);
+    if( f < 0.8 ) {
+        floor.set(x,y,f+0.5,40);
+        var zooming = worldsize/floor.size;
+        food.push( new plant( (x*2)*zooming-worldsize, (y*2)*zooming-worldsize ) );
+    } else {
+        x++;
+        if( x >= floor.size ) {
+            x = x % floor.size;
+            y++;
+        }
+        if( y >= floor.size) {
+            y = y % floor.size;
+        }
+        generateFood(x,y);
+    }
 }
 
 function loop()
@@ -86,6 +111,8 @@ function loop()
 		}
 	}
         })();
+
+        floor.step();
 
 	if( bots.length < 5 )
 		bots.push( new neurobot( worldsize*2.0*(Math.random()-0.5), worldsize*2.0*(Math.random()-0.5), Math.PI*2*Math.random() ) );
@@ -149,6 +176,7 @@ function resetsim()
 		bots.push( new neurobot( worldsize*2.0*(Math.random()-0.5), worldsize*2.0*(Math.random()-0.5), Math.PI*2*Math.random() ) );
 
 	food = new Array();
+        floor.reset();
 	for( var i=0; i<maxfood; i++ )
 	{
             generateFood();
@@ -162,12 +190,13 @@ function resetsim()
 function init()
 {
 	var canvas = document.getElementById( "canvas" );
+	floorcanvas = document.getElementById( "floor" );
 
-	if( canvas.getContext )
+	if( canvas.getContext && floorcanvas.getContext)
 	{
 		ctx = canvas.getContext( "2d" );
-
-		resetcam();
+                floor = new Floor(600,floorcanvas,food);
+                floor.init();
 
 		mousedown = false;
 		canvas.onmousewheel = wheelzoom;
@@ -175,6 +204,8 @@ function init()
 		canvas.onclick = mouse_click;
 		document.onmouseup = mouse_up;
 		document.onmousemove = movecam;
+
+		resetcam();
 
 		resetsim();
 
@@ -187,6 +218,8 @@ function init()
 
 		running = true;
                 loop();
-	}
+	} else {
+                console.log("no context");
+        }
 }
 
