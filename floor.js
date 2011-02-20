@@ -38,7 +38,7 @@ function Floor(size,canvas) {
         if(x>=this.size) x = x % this.size;
         if(y>=this.size) y = y % this.size;
         this.map[x*this.size+y] = value;
-        var c = Math.floor((1-value)*127);
+        var c = Math.floor((1-value)*127*0.6);
         this.setPixel(x,y,c,c,0,0xff);
 
         if(area > 0) {
@@ -73,7 +73,7 @@ function Floor(size,canvas) {
 
     this.step = function() {
         this.tick++;
-        if (this.tick >= 100) {
+        if (this.tick >= 500) {
             this.smoothMap();
             this.tick = 0;
         }

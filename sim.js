@@ -42,42 +42,43 @@ function draw()
 	ctx.restore();
 }
 
-function generateFood(px,py) {
-    fooddelay = foodrate;
+function searchFoodSpot(px,py,mx,my) {
+    mx |= floor.size;
+    my |= floor.size;
 
-    var x,y;
-    if( !px || !py) {
-        x = Math.round(Math.random()*floor.size);
-        y = Math.round(Math.random()*floor.size);
-    } else {
-        x = px;
-        y = py;
-    }
-
-    var f = floor.get(x,y);
-    if( f < 0.8 ) {
-        floor.set(x,y,f+0.5,40);
-        var zooming = worldsize/floor.size;
-        food.push( new plant( (x*2)*zooming-worldsize, (y*2)*zooming-worldsize ) );
-    } else {
-        x++;
-        if( x >= floor.size ) {
-            x = x % floor.size;
-            y++;
+    for (var x = px; x < mx; x++) {
+        for (var y = py; y < my; y++) {
+            var f = floor.get(x,y);
+            if (f < 0.8)
+                return {x: x, y:y, value:f};
         }
-        if( y >= floor.size) {
-            y = y % floor.size;
-        }
-        generateFood(x,y);
     }
+    return;
 }
 
-function loop()
-{
-        var update = false;
-        var distcache = {};
+function generateFood() {
+    fooddelay = foodrate;
 
-	(function checkbots() {
+    var x = Math.round(Math.random()*floor.size);
+    var y = Math.round(Math.random()*floor.size);
+    var next = searchFoodSpot(x,y);
+    if( typeof next == "undefined" ) {
+        next = searchFoodSpot(0,0,x,y); //start over
+    }
+
+    if( typeof next != "undefined" ) {
+        floor.set(next.x,next.y,next.value+0.5,40);
+        var zooming = worldsize/floor.size;
+        food.push( new plant( (next.x*2)*zooming-worldsize, (next.y*2)*zooming-worldsize ) );
+        return true;
+    } else {
+        console.log("the floor is exhausted");
+        return false; //didn't find a spot :( map is overused
+    }
+
+}
+
+function checkbots() {
         for( var i=0; i<bots.length; i++ )
 	{
 		if( bots[i].alife == false )
@@ -86,18 +87,19 @@ function loop()
 				selected = -1;
 			if( selected > i )
 				selected -= 1;
+                        bots[i].kill();
 
 			bots.splice( i, 1 );
 			i--;
 		}
 		else
 		{
-			bots[i].step(distcache);
+			bots[i].step();
 		}
 	}
-        })();
+}
 
-        (function checkfood() {
+function checkfood() {
 	for( var i=0; i<food.length; i++ )
 	{
 		if(food[i].alife == false )
@@ -110,7 +112,14 @@ function loop()
 			food[i].step();
 		}
 	}
-        })();
+}
+
+function loop()
+{
+        var update = false;
+
+        checkbots();
+        checkfood();
 
         floor.step();
 
