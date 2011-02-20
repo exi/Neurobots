@@ -29,16 +29,21 @@ function Floor(size,canvas) {
     }
 
     this.get = function(x,y) {
+        if(x<0) while(x<0) { x+=this.size; }
+        if(y<0) while(y<0) { y+=this.size; }
         if(x>=this.size) x = x % this.size;
         if(y>=this.size) y = y % this.size;
         return this.map[x*this.size+y];
     }
 
     this.set = function(x,y,value,area,dontblit) {
+        if(x<0) while(x<0) { x+=this.size; }
+        if(y<0) while(y<0) { y+=this.size; }
         if(x>=this.size) x = x % this.size;
         if(y>=this.size) y = y % this.size;
+
         this.map[x*this.size+y] = value;
-        var c = Math.floor((1-value)*127*0.6);
+        var c = Math.floor((1-value*0.6)*127);
         this.setPixel(x,y,c,c,0,0xff);
 
         if(area > 0) {
