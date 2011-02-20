@@ -121,6 +121,7 @@ function neurobot( x, y, rot, parent)
 
 	this.step = function()
 	{
+                var maxSightc = Math.pow(150*150,4);
 		for( var i=0; i<this.inputneurons; i++ )
 			this.vision[i] = 0.0;
 
@@ -155,7 +156,7 @@ function neurobot( x, y, rot, parent)
 				dist = (p.x-food[j].x)*(p.x-food[j].x)+(p.y-food[j].y)*(p.y-food[j].y);
 				
 				if( dist <= 25.0 )
-					this.vision[i] = 1.0 - distq/(150*150);
+					this.vision[i] = 1.0 - Math.pow(distq,4)/maxSightc;
 			}
 		}
 
@@ -191,7 +192,7 @@ function neurobot( x, y, rot, parent)
 				dist = (p.x-bots[j].x)*(p.x-bots[j].x)+(p.y-bots[j].y)*(p.y-bots[j].y);
 				
 				if( dist <= 25.0 )
-					this.vision[i+16] = 1.0 - distq/(150*150);
+					this.vision[i+16] = 1.0 - Math.pow(distq,4)/maxSightc;
 			}
 		}
 
@@ -457,5 +458,9 @@ function neurobot( x, y, rot, parent)
 
 		return result;
 	}
+
+        this.kill = function() {
+            delete this.brain;
+        }
 }
 
