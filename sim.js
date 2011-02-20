@@ -151,8 +151,7 @@ function loop()
 	statdelay--;
 	if( statdelay <= 0 )
 	{
-                if( update )
-                    do_stats();
+                do_stats();
 		statdelay = 10;
 	}
         timer = setTimeout(loop, 1);
