@@ -1,6 +1,6 @@
 function randinit( range )
 {
-	return (Math.random()*2.0-1.0)*range;
+	return (Math.random()*2.0-1.0)*(Math.random()*2.0-1.0)*range;
 }
 
 function mutate( value, range, rate )
@@ -109,7 +109,10 @@ function Brain(p_braindepth, p_layersize, p_inputneurons, p_outputneurons) {
 
         for( x=0; x<this.braindepth; x++ ) {
             for( y=0; y<this.layersize; y++ ) {
-                this.neurons[x][y].activation = this.neurons[x][y].nextact/(1.0+Math.abs(this.neurons[x][y].nextact));
+                if( this.neurons[x][y].nextact > 0.0 )
+                    this.neurons[x][y].activation = this.neurons[x][y].nextact/(1.0+this.neurons[x][y].nextact);
+                else
+                    this.neurons[x][y].activation = 0.0;
             }
 	}
 
@@ -122,7 +125,6 @@ function Brain(p_braindepth, p_layersize, p_inputneurons, p_outputneurons) {
                 output[i] += this.neurons[this.neurons.length-1][j].activation;
             }
             output[i] /= stepsize;
-            output[i] = output[i]/(1.0+Math.abs(output[i]));
         }
 
         return output;

@@ -204,8 +204,8 @@ function neurobot( x, y, rot, parent)
 
                 this.output = this.brain.step(this.vision);
 
-		var speed = Math.abs(this.output[0]);
-		var turnspeed = this.output[1];
+		var speed = Math.max(this.output[0],this.output[1]);
+		var turnspeed = this.output[0] - this.output[1];
 		
 		this.rot += turnspeed/5.0;
 

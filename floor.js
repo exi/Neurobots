@@ -3,18 +3,17 @@ function Floor(size,canvas) {
     this.size = size;
     this.canvas = canvas;
     this.ctx = canvas.getContext("2d");
-    this.map = new Array(this.size*this.size);
     this.tick = 0;
+    this.map = new Array(this.size*this.size);
 
     this.init = function() {
         this.resetImage();
-        for( var x = 0; x<this.size; x++) 
-            for( var y = 0; y<this.size; y++) 
-                this.set(x,y,0,0,true);
+        this.resetMap();
         this.modified();
     }
 
     this.reset = function() {
+        this.resetMap();
         this.resetImage();
         this.modified();
         this.tick = 0;
@@ -22,6 +21,12 @@ function Floor(size,canvas) {
 
     this.resetImage = function() {
         this.image = this.ctx.getImageData(0,0,this.size,this.size);
+    }
+    
+    this.resetMap = function() {
+        for( var x = 0; x<this.size; x++) 
+            for( var y = 0; y<this.size; y++) 
+                this.set(x,y,0,0,true);
     }
     
     this.modified = function() {
